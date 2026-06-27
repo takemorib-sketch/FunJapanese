@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>レストラン口コミ — 練習一覧</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#DB3A35">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tb-red: #DB3A35;
+    --tb-cream: #F7F5F0;
+    --tb-card: #FFFFFF;
+    --tb-border: #E5E0D6;
+    --tb-text: #3A2E2A;
+    --tb-text-muted: #8C8178;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--tb-cream);
+    font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    color: var(--tb-text);
+    min-height: 100vh;
+  }
+  .top-bar {
+    background: var(--tb-red);
+    color: white;
+    padding: 12px 20px;
+    font-weight: 900;
+    font-size: 18px;
+  }
+  .page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+  .back-link {
+    display: inline-block;
+    color: var(--tb-text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 900;
+    margin: 0 0 6px;
+  }
+  p.sub {
+    font-size: 13.5px;
+    color: var(--tb-text-muted);
+    margin: 0 0 22px;
+  }
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .level-btn {
+    background: var(--tb-card);
+    border: 1px solid var(--tb-border);
+    border-radius: 8px;
+    padding: 14px 10px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--tb-text);
+    cursor: pointer;
+    text-align: center;
+  }
+  .level-btn.active {
+    background: var(--tb-red);
+    color: white;
+    border-color: var(--tb-red);
+  }
+  .page-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--tb-card);
+    border: 1px solid var(--tb-border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-decoration: none;
+    color: var(--tb-text);
+  }
+  .page-link:hover {
+    border-color: var(--tb-red);
+  }
+  .page-link .title {
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .page-link .arrow {
+    color: var(--tb-red);
+    font-size: 16px;
+  }
+  .status-msg {
+    font-size: 13.5px;
+    color: var(--tb-text-muted);
+    text-align: center;
+    padding: 20px 0;
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">🍜 食べログ風 — レストラン口コミ練習</div>
+
+<div class="page">
+  <a class="back-link" href="index.html">← トップに戻る</a>
+  <h1>レベルを選んでください</h1>
+  <p class="sub">Choose a level to see the restaurant review pages for that level.</p>
+
+  <div class="level-grid" id="level-grid"></div>
+
+  <div id="page-list-area">
+    <p class="status-msg" id="status-msg">レベルを選んでください。 (Please choose a level above.)</p>
+    <div class="page-list hidden" id="page-list"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Level keys must exactly match the folder names under restaurant-reviews/
+  const LEVELS = [
+    { key: "Starter", label: "Starter" },
+    { key: "Elementary_1", label: "Elementary 1" },
+    { key: "Elementary_2", label: "Elementary 2" },
+    { key: "Pre-intermediate", label: "Pre-intermediate" },
+    { key: "Intermediate_1", label: "Intermediate 1" },
+  ];
+
+  const BASE_FOLDER = "restaurant-reviews";
+
+  const levelGrid = document.getElementById("level-grid");
+  const statusMsg = document.getElementById("status-msg");
+  const pageList = document.getElementById("page-list");
+
+  levelGrid.innerHTML = LEVELS.map((lvl) =>
+    `<button class="level-btn" data-level="${escapeAttr(lvl.key)}">${escapeHtml(lvl.label)}</button>`
+  ).join("");
+
+  Array.from(levelGrid.querySelectorAll(".level-btn")).forEach((btn) => {
+    btn.addEventListener("click", () => selectLevel(btn.dataset.level, btn));
+  });
+
+  function selectLevel(levelKey, clickedBtn) {
+    Array.from(levelGrid.querySelectorAll(".level-btn")).forEach((b) =>
+      b.classList.toggle("active", b === clickedBtn)
+    );
+
+    statusMsg.classList.remove("hidden");
+    pageList.classList.add("hidden");
+    statusMsg.textContent = "読み込み中... (Loading...)";
+
+    const manifestUrl = `${BASE_FOLDER}/${levelKey}/manifest.json`;
+
+    fetch(manifestUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((entries) => {
+        if (!Array.isArray(entries) || entries.length === 0) {
+          statusMsg.textContent = "このレベルにはまだページがありません。 (No pages yet for this level.)";
+          pageList.classList.add("hidden");
+          return;
+        }
+
+        pageList.innerHTML = entries.map((entry) => {
+          const href = `${BASE_FOLDER}/${levelKey}/${encodeURIComponent(entry.file)}`;
+          const title = entry.title || entry.file;
+          return `<a class="page-link" href="${escapeAttr(href)}">
+            <span class="title">${escapeHtml(title)}</span>
+            <span class="arrow">→</span>
+          </a>`;
+        }).join("");
+
+        statusMsg.classList.add("hidden");
+        pageList.classList.remove("hidden");
+      })
+      .catch((err) => {
+        console.error(err);
+        statusMsg.textContent = "読み込みエラー。manifest.json が見つかりません。 (Couldn't load this level's manifest.json.)";
+        pageList.classList.add("hidden");
+      });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
+  }
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/"/g, "&quot;");
+  }
+})();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch((err) => {
+      console.warn("Service worker registration failed:", err);
+    });
+  });
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon Reviews — Practice List</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#131921">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Arial:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --amazon-navy: #131921;
+    --amazon-orange: #FF9900;
+    --bg: #FFFFFF;
+    --bg-muted: #F7F8F8;
+    --border: #D5D9D9;
+    --text: #0F1111;
+    --text-muted: #565959;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg-muted);
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .top-bar {
+    background: var(--amazon-navy);
+    color: white;
+    padding: 14px 20px;
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .top-bar .orange { color: var(--amazon-orange); }
+  .page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+  .back-link {
+    display: inline-block;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: 19px;
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+  p.sub {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    margin: 0 0 22px;
+  }
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .level-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 10px;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+  }
+  .level-btn.active {
+    background: var(--amazon-navy);
+    color: white;
+    border-color: var(--amazon-navy);
+  }
+  .page-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .page-link:hover { border-color: var(--amazon-orange); }
+  .page-link .title { font-weight: 700; font-size: 14px; }
+  .page-link .arrow { color: var(--amazon-orange); font-size: 16px; }
+  .status-msg {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px 0;
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">amazon<span class="orange">.co.jp</span> — practice reviews list</div>
+
+<div class="page">
+  <a class="back-link" href="index.html">← Back to top</a>
+  <h1>Choose a level</h1>
+  <p class="sub">Pick a level to see the Amazon-style review pages for that level.</p>
+
+  <div class="level-grid" id="level-grid"></div>
+
+  <div id="page-list-area">
+    <p class="status-msg" id="status-msg">Please choose a level above.</p>
+    <div class="page-list hidden" id="page-list"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Level keys must exactly match the folder names under amazon-reviews/
+  const LEVELS = [
+    { key: "Starter", label: "Starter" },
+    { key: "Elementary_1", label: "Elementary 1" },
+    { key: "Elementary_2", label: "Elementary 2" },
+    { key: "Pre-intermediate", label: "Pre-intermediate" },
+    { key: "Intermediate_1", label: "Intermediate 1" },
+  ];
+
+  const BASE_FOLDER = "amazon-reviews";
+
+  const levelGrid = document.getElementById("level-grid");
+  const statusMsg = document.getElementById("status-msg");
+  const pageList = document.getElementById("page-list");
+
+  levelGrid.innerHTML = LEVELS.map((lvl) =>
+    `<button class="level-btn" data-level="${escapeAttr(lvl.key)}">${escapeHtml(lvl.label)}</button>`
+  ).join("");
+
+  Array.from(levelGrid.querySelectorAll(".level-btn")).forEach((btn) => {
+    btn.addEventListener("click", () => selectLevel(btn.dataset.level, btn));
+  });
+
+  function selectLevel(levelKey, clickedBtn) {
+    Array.from(levelGrid.querySelectorAll(".level-btn")).forEach((b) =>
+      b.classList.toggle("active", b === clickedBtn)
+    );
+
+    statusMsg.classList.remove("hidden");
+    pageList.classList.add("hidden");
+    statusMsg.textContent = "Loading...";
+
+    const manifestUrl = `${BASE_FOLDER}/${levelKey}/manifest.json`;
+
+    fetch(manifestUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((entries) => {
+        if (!Array.isArray(entries) || entries.length === 0) {
+          statusMsg.textContent = "No pages yet for this level.";
+          pageList.classList.add("hidden");
+          return;
+        }
+
+        pageList.innerHTML = entries.map((entry) => {
+          const href = `${BASE_FOLDER}/${levelKey}/${encodeURIComponent(entry.file)}`;
+          const title = entry.title || entry.file;
+          return `<a class="page-link" href="${escapeAttr(href)}">
+            <span class="title">${escapeHtml(title)}</span>
+            <span class="arrow">→</span>
+          </a>`;
+        }).join("");
+
+        statusMsg.classList.add("hidden");
+        pageList.classList.remove("hidden");
+      })
+      .catch((err) => {
+        console.error(err);
+        statusMsg.textContent = "Couldn't load this level's manifest.json.";
+        pageList.classList.add("hidden");
+      });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
+  }
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/"/g, "&quot;");
+  }
+})();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch((err) => {
+      console.warn("Service worker registration failed:", err);
+    });
+  });
+}
+</script>
+
+</body>
+</html>

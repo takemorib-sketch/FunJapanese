@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ゆうき — Japanese Practice Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --honey: #FFC629;
+    --ink: #2D2A26;
+    --cream: #FFF8E7;
+    --coral: #FF6B5C;
+    --muted: #8A8175;
+    --card-radius: 28px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #FFC629 0%, #FFE08A 38%, #FFF8E7 100%);
+    font-family: 'Inter', sans-serif;
+    padding: 32px 16px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--cream);
+    border-radius: var(--card-radius);
+    box-shadow: 0 30px 60px -20px rgba(45, 42, 38, 0.35);
+    overflow: hidden;
+    border: 1px solid rgba(45,42,38,0.06);
+  }
+
+  .photo-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #ECE3CC;
+  }
+
+  .photo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .photo-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(45,42,38,0.75) 0%, rgba(45,42,38,0) 45%);
+  }
+
+  .photo-name {
+    position: absolute;
+    left: 20px;
+    bottom: 16px;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .photo-name .display-name {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.1;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .photo-name .age {
+    font-size: 19px;
+    font-weight: 500;
+    opacity: 0.9;
+  }
+
+  /* Heart toggle — floats top-right of the photo. A hidden checkbox
+     drives which of the two photos is visible, using the same
+     sibling-selector pattern as the JA/EN toggle (no JS needed). */
+  .photo-controller {
+    position: relative;
+  }
+
+  .photo-controller input {
+    display: none;
+  }
+
+  .photo-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #ECE3CC;
+    overflow: hidden;
+  }
+
+  .photo-wrap .photo-frame img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+
+  .photo-wrap .photo-frame img.photo-1 {
+    opacity: 1;
+  }
+
+  #reveal-second:checked ~ .photo-frame img.photo-1 {
+    opacity: 0;
+  }
+
+  #reveal-second:checked ~ .photo-frame img.photo-2 {
+    opacity: 1;
+  }
+
+  .heart-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 3;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(45,42,38,0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.15s ease;
+  }
+
+  .heart-toggle:hover {
+    transform: scale(1.06);
+  }
+
+  .heart-toggle svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: white;
+    stroke-width: 2.2;
+    transition: fill 0.25s ease, stroke 0.25s ease;
+  }
+
+  #reveal-second:checked ~ .heart-toggle {
+    background: var(--honey);
+  }
+
+  #reveal-second:checked ~ .heart-toggle svg {
+    fill: var(--ink);
+    stroke: var(--ink);
+  }
+
+  .level-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--honey);
+    color: var(--ink);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    padding: 7px 14px;
+    border-radius: 999px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 18px 20px 4px;
+  }
+
+  .chip {
+    background: rgba(45,42,38,0.06);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 13px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .chip svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* Language toggle — the signature element: a sliding pill switch
+     styled after the card's like/pass mechanic, repurposed for JA/EN */
+  .toggle-row {
+    padding: 18px 20px 0;
+  }
+
+  .toggle {
+    position: relative;
+    display: flex;
+    background: rgba(45,42,38,0.07);
+    border-radius: 999px;
+    padding: 4px;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .toggle input {
+    display: none;
+  }
+
+  .toggle label {
+    flex: 1;
+    text-align: center;
+    padding: 9px 0;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 999px;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    color: var(--muted);
+    transition: color 0.25s ease;
+    user-select: none;
+  }
+
+  .toggle-pill {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    background: var(--ink);
+    border-radius: 999px;
+    transition: transform 0.28s cubic-bezier(.65,0,.35,1);
+    z-index: 1;
+  }
+
+  #lang-en:checked ~ .toggle-row .toggle-pill {
+    transform: translateX(100%);
+  }
+
+  #lang-jp:checked ~ .toggle-row label[for="lang-jp"],
+  #lang-en:checked ~ .toggle-row label[for="lang-en"] {
+    color: var(--cream);
+  }
+
+  .bio-section {
+    padding: 16px 20px 6px;
+  }
+
+  .bio-panel {
+    display: none;
+  }
+
+  #lang-jp:checked ~ .bio-section .bio-panel.jp,
+  #lang-en:checked ~ .bio-section .bio-panel.en {
+    display: block;
+  }
+
+  .lang-controller input { display: none; }
+
+  .bio-subject {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    margin: 0 0 8px;
+  }
+
+  .bio-panel.jp .bio-subject,
+  .bio-panel.jp .bio-body {
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .bio-body {
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: var(--ink);
+    white-space: pre-wrap;
+    margin: 0;
+  }
+
+  .divider {
+    height: 1px;
+    background: rgba(45,42,38,0.08);
+    margin: 20px 20px 0;
+  }
+
+  .quiz-heading {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--coral);
+    padding: 20px 20px 0;
+    margin: 0;
+  }
+
+  .quiz-list {
+    padding: 12px 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .quiz-card {
+    background: white;
+    border: 1px solid rgba(45,42,38,0.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+
+  .quiz-q {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+    margin: 0 0 6px;
+    white-space: pre-wrap;
+  }
+
+  .quiz-card details summary {
+    font-family: 'Poppins', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--coral);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .quiz-card details summary::-webkit-details-marker { display: none; }
+
+  .quiz-card details summary::after {
+    content: " ›";
+  }
+
+  .quiz-card details[open] summary::after {
+    content: " ⌄";
+  }
+
+  .quiz-card details > *:not(summary) {
+    margin-top: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--cream);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .quiz-empty {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 0 20px 20px;
+  }
+
+  .footer-actions {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    padding: 6px 20px 26px;
+  }
+
+  .fab {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 16px rgba(45,42,38,0.18);
+    cursor: default;
+  }
+
+  .fab.pass { background: white; color: var(--ink); }
+  .fab.like { background: var(--honey); color: var(--ink); }
+  .fab svg { width: 22px; height: 22px; }
+
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="photo-wrap">
+    <div class="photo-controller">
+      <input type="checkbox" id="reveal-second">
+      <div class="photo-frame">
+        <img class="photo-1" src="data:image/png;base64,UEhPVE8gT05FIEJZVEVT" alt="ゆうき's first profile photo" onerror="this.src='https://placehold.co/600x600/FFC629/2D2A26?text=No+Photo'">
+        <img class="photo-2" src="data:image/png;base64,UEhPVE8gVFdPIEJZVEVT" alt="ゆうき's second profile photo" onerror="this.src='https://placehold.co/600x600/FFC629/2D2A26?text=No+Photo'">
+      </div>
+      <label for="reveal-second" class="heart-toggle" title="Reveal another photo">
+        <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.1 2 4.5 5.6 4 8 3.7 10 5 12 7.3 14 5 16 3.7 18.4 4 22 4.5 23.6 8.1 22 11.7 19.5 16.4 12 21 12 21z"/></svg>
+      </label>
+    </div>
+    <div class="photo-gradient"></div>
+    <div class="level-badge">Intermediate</div>
+    <div class="photo-name">
+      <div class="display-name">ゆうき <span class="age">29</span></div>
+    </div>
+  </div>
+
+  <div class="chips">
+    <span class="chip">📚 Intermediate</span>
+    <span class="chip">💬 Topic 5: Hobbies and Weekend Plans</span>
+    <span class="chip">🇯🇵 Learning Japanese</span>
+  </div>
+
+  <!-- The two radios live here, outside .toggle, so the ~ sibling
+       selectors below can reach BOTH .toggle-row's pill and the
+       .bio-section panels further down — both are later siblings
+       of these inputs within this shared .lang-controller parent. -->
+  <div class="lang-controller">
+    <input type="radio" name="lang" id="lang-jp" checked>
+    <input type="radio" name="lang" id="lang-en">
+
+    <div class="toggle-row">
+      <div class="toggle">
+        <label for="lang-jp">日本語</label>
+        <label for="lang-en">English</label>
+        <div class="toggle-pill"></div>
+      </div>
+    </div>
+
+    <div class="bio-section">
+      <div class="bio-panel jp">
+        <p class="bio-subject">しゅみについて</p>
+        <p class="bio-body">わたしのしゅみはおんがくをきくことです。しゅうまつはよくジムに行きます。</p>
+      </div>
+      <div class="bio-panel en">
+        <p class="bio-subject">About my hobbies</p>
+        <p class="bio-body">My hobby is listening to music. I often go to the gym on weekends.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <p class="quiz-heading">Comprehension check</p>
+  <div class="quiz-list">
+    <div class="quiz-card"><p class="quiz-q">What does Yuki do on weekends?
+A. Reading
+B. Going to the gym
+C. Cooking</p><details><summary>Reveal answer</summary>B. Going to the gym</details></div>
+  </div>
+
+  <div class="footer-actions">
+    <button class="fab pass" title="Decorative — not wired up">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+</div>
+
+</body>
+</html>

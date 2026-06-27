@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Japanese Practice — Swipe Deck</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2D2A26">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --honey: #FFC629;
+    --ink: #2D2A26;
+    --cream: #FFF8E7;
+    --coral: #FF6B5C;
+    --muted: #8A8175;
+    --green: #3FB37F;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(160deg, #FFC629 0%, #FFE08A 38%, #FFF8E7 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---------- Loader screen (file picker) ---------- */
+  #loader-screen {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px 24px;
+    text-align: center;
+  }
+
+  #loader-screen h1 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 26px;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  #loader-screen p.sub {
+    font-size: 14.5px;
+    color: var(--ink);
+    opacity: 0.75;
+    margin: 0 0 28px;
+    line-height: 1.5;
+  }
+
+  .picker-section {
+    margin-bottom: 22px;
+  }
+
+  .picker-section-label {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+    text-align: left;
+  }
+
+  .type-grid, .level-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .type-btn, .level-btn {
+    background: rgba(255,255,255,0.6);
+    border: 2px solid rgba(45,42,38,0.12);
+    border-radius: 14px;
+    padding: 14px 10px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .type-btn:hover, .level-btn:hover {
+    border-color: var(--coral);
+  }
+
+  .type-btn.active, .level-btn.active {
+    background: var(--ink);
+    color: var(--cream);
+    border-color: var(--ink);
+  }
+
+  #loader-status {
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--coral);
+    font-weight: 600;
+    min-height: 18px;
+  }
+
+  /* ---------- Deck screen ---------- */
+  #deck-screen {
+    display: none;
+    width: 100%;
+    max-width: 420px;
+    height: 100%;
+    max-height: 800px;
+    padding: 20px 16px;
+    flex-direction: column;
+  }
+
+  .deck-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 14px;
+    flex-shrink: 0;
+  }
+
+  .deck-header h1 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 19px;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .deck-counter {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+    opacity: 0.65;
+  }
+
+  .stack {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .swipe-card {
+    position: absolute;
+    inset: 0;
+    background: var(--cream);
+    border-radius: 28px;
+    box-shadow: 0 30px 60px -20px rgba(45, 42, 38, 0.35);
+    overflow: hidden;
+    border: 1px solid rgba(45,42,38,0.06);
+    will-change: transform;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .swipe-card .card-photo {
+    position: relative;
+    width: 100%;
+    height: 62%;
+    background: #ECE3CC;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .swipe-card .card-photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .swipe-card .card-photo .photo-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(45,42,38,0.75) 0%, rgba(45,42,38,0) 45%);
+  }
+
+  .swipe-card .card-name {
+    position: absolute;
+    left: 18px;
+    bottom: 14px;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .swipe-card .card-name .age {
+    font-size: 16px;
+    font-weight: 500;
+    opacity: 0.9;
+  }
+
+  .swipe-card .card-level {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--honey);
+    color: var(--ink);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+
+  .swipe-card .card-body {
+    padding: 14px 18px 18px;
+    height: 38%;
+    overflow-y: auto;
+  }
+
+  .swipe-card .card-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .swipe-card .card-chip {
+    background: rgba(45,42,38,0.06);
+    color: var(--ink);
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 5px 11px;
+    border-radius: 999px;
+  }
+
+  .swipe-card .card-bio-subject {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    margin: 0 0 4px;
+  }
+
+  .swipe-card .card-bio-body {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink);
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  /* Like / pass stamps */
+  .stamp {
+    position: absolute;
+    top: 28px;
+    z-index: 5;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 30px;
+    letter-spacing: 0.04em;
+    padding: 8px 18px;
+    border-radius: 12px;
+    border: 4px solid currentColor;
+    opacity: 0;
+    pointer-events: none;
+    text-transform: uppercase;
+  }
+
+  .stamp.like {
+    left: 24px;
+    color: var(--green);
+    transform: rotate(-18deg);
+  }
+
+  .stamp.pass {
+    right: 24px;
+    color: var(--coral);
+    transform: rotate(18deg);
+  }
+
+  /* Big heart burst shown on a committed like */
+  .heart-burst {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 6;
+  }
+
+  .heart-burst svg {
+    width: 120px;
+    height: 120px;
+    fill: var(--coral);
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  .heart-burst.show svg {
+    animation: heart-pop 0.55s ease forwards;
+  }
+
+  @keyframes heart-pop {
+    0%   { opacity: 0; transform: scale(0.4); }
+    50%  { opacity: 1; transform: scale(1.15); }
+    100% { opacity: 0; transform: scale(1.3); }
+  }
+
+  .action-row {
+    display: flex;
+    justify-content: center;
+    gap: 22px;
+    padding: 16px 0 4px;
+    flex-shrink: 0;
+  }
+
+  .action-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 18px rgba(45,42,38,0.18);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .action-btn:hover { transform: scale(1.08); }
+  .action-btn:active { transform: scale(0.94); }
+
+  .action-btn svg { width: 24px; height: 24px; }
+  .action-btn.pass svg { stroke: var(--coral); fill: none; stroke-width: 2.4; stroke-linecap: round; }
+  .action-btn.like svg { fill: var(--green); }
+
+  /* ---------- Summary screen ---------- */
+  #summary-screen {
+    display: none;
+    width: 100%;
+    max-width: 420px;
+    max-height: 100%;
+    padding: 32px 24px;
+    text-align: center;
+    overflow-y: auto;
+  }
+
+  #summary-screen h1 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    color: var(--ink);
+    margin: 0 0 4px;
+  }
+
+  #summary-screen p.sub {
+    font-size: 14px;
+    color: var(--ink);
+    opacity: 0.7;
+    margin: 0 0 22px;
+  }
+
+  .summary-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .summary-stat {
+    flex: 1;
+    background: rgba(255,255,255,0.6);
+    border-radius: 16px;
+    padding: 16px 8px;
+  }
+
+  .summary-stat .num {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    color: var(--ink);
+  }
+
+  .summary-stat .label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .review-section {
+    text-align: left;
+    margin-bottom: 18px;
+  }
+
+  .review-heading {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .mini-card-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    background: rgba(255,255,255,0.45);
+    border-radius: 16px;
+    padding: 12px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .mini-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .mini-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .mini-card:focus-visible {
+    outline: 2px solid var(--coral);
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+
+  .mini-card-photo {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #ECE3CC;
+    border: 2px solid rgba(255,255,255,0.7);
+  }
+
+  .mini-card-name {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--ink);
+    text-align: center;
+    line-height: 1.25;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mini-card-age {
+    font-weight: 400;
+    opacity: 0.7;
+  }
+
+  .mini-card-list .empty {
+    grid-column: 1 / -1;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    padding: 10px 4px;
+  }
+
+  .restart-btn {
+    background: var(--ink);
+    color: var(--cream);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 14.5px;
+    border: none;
+    border-radius: 999px;
+    padding: 13px 28px;
+    cursor: pointer;
+  }
+
+  .hidden { display: none !important; }
+
+  /* ---------- Review modal ---------- */
+  #review-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(45,42,38,0.55);
+    z-index: 50;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  #review-modal-backdrop.open {
+    display: flex;
+  }
+
+  #review-modal {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    max-height: 88vh;
+    background: var(--cream);
+    border-radius: 28px;
+    overflow-y: auto;
+    box-shadow: 0 30px 60px -20px rgba(45, 42, 38, 0.45);
+  }
+
+  #review-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 3;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(45,42,38,0.55);
+    backdrop-filter: blur(4px);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  #review-modal-close svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .review-card-photo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #ECE3CC;
+    overflow: hidden;
+  }
+
+  .review-card-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .review-card-photo .photo-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(45,42,38,0.75) 0%, rgba(45,42,38,0) 45%);
+  }
+
+  .review-card-photo .card-level {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: var(--honey);
+    color: var(--ink);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+
+  .review-card-photo .card-name {
+    position: absolute;
+    left: 18px;
+    bottom: 14px;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .review-card-photo .card-name .age {
+    font-size: 17px;
+    font-weight: 500;
+    opacity: 0.9;
+  }
+
+  /* Two-photo variant: a heart toggle reveals the second photo, reusing
+     the same hidden-checkbox + sibling-selector technique as the JA/EN
+     toggle above (and the original profile card's heart button). Only
+     rendered when the profile actually has a second photo. */
+  .review-photo-controller {
+    position: relative;
+  }
+
+  .review-photo-controller input {
+    display: none;
+  }
+
+  .review-photo-controller .review-card-photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+
+  .review-photo-controller .review-card-photo img.review-photo-1 {
+    opacity: 1;
+  }
+
+  .review-photo-controller input:checked ~ .review-card-photo img.review-photo-1 {
+    opacity: 0;
+  }
+
+  .review-photo-controller input:checked ~ .review-card-photo img.review-photo-2 {
+    opacity: 1;
+  }
+
+  .review-heart-toggle {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 3;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(45,42,38,0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.15s ease;
+  }
+
+  .review-heart-toggle:hover {
+    transform: scale(1.06);
+  }
+
+  .review-heart-toggle svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: white;
+    stroke-width: 2.2;
+    transition: fill 0.25s ease, stroke 0.25s ease;
+  }
+
+  .review-photo-controller input:checked ~ .review-heart-toggle {
+    background: var(--honey);
+  }
+
+  .review-photo-controller input:checked ~ .review-heart-toggle svg {
+    fill: var(--ink);
+    stroke: var(--ink);
+  }
+
+  .review-card-body {
+    padding: 16px 20px 22px;
+  }
+
+  .review-card-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .review-card-chip {
+    background: rgba(45,42,38,0.06);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+
+  .review-lang-toggle {
+    position: relative;
+    display: flex;
+    background: rgba(45,42,38,0.07);
+    border-radius: 999px;
+    padding: 4px;
+    font-family: 'Poppins', sans-serif;
+    margin-bottom: 16px;
+  }
+
+  .review-lang-toggle input { display: none; }
+
+  .review-lang-toggle label {
+    flex: 1;
+    text-align: center;
+    padding: 9px 0;
+    font-size: 13.5px;
+    font-weight: 700;
+    border-radius: 999px;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    color: var(--muted);
+    transition: color 0.25s ease;
+    user-select: none;
+  }
+
+  .review-toggle-pill {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    background: var(--ink);
+    border-radius: 999px;
+    transition: transform 0.28s cubic-bezier(.65,0,.35,1);
+    z-index: 1;
+  }
+
+  .review-card-body input[id$="-en"]:checked ~ .review-toggle-pill {
+    transform: translateX(100%);
+  }
+
+  .review-card-body input[id$="-jp"]:checked ~ .review-lang-toggle label[for$="-jp"],
+  .review-card-body input[id$="-en"]:checked ~ .review-lang-toggle label[for$="-en"] {
+    color: var(--cream);
+  }
+
+  .review-bio-panel { display: none; }
+
+  .review-card-body input[id$="-jp"]:checked ~ .review-bio-panels .review-bio-panel.jp,
+  .review-card-body input[id$="-en"]:checked ~ .review-bio-panels .review-bio-panel.en {
+    display: block;
+  }
+
+  .review-bio-subject {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    margin: 0 0 8px;
+  }
+
+  .review-bio-panel.jp .review-bio-subject,
+  .review-bio-panel.jp .review-bio-body {
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .review-bio-body {
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: var(--ink);
+    white-space: pre-wrap;
+    margin: 0;
+  }
+
+  .review-quiz-section {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(45,42,38,0.08);
+  }
+
+  .review-quiz-heading {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--coral);
+    margin: 0 0 10px;
+  }
+
+  .review-quiz-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .review-quiz-card {
+    background: white;
+    border: 1px solid rgba(45,42,38,0.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+
+  .review-quiz-q {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+    margin: 0 0 6px;
+    white-space: pre-wrap;
+  }
+
+  .review-quiz-card details summary {
+    font-family: 'Poppins', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--coral);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .review-quiz-card details summary::-webkit-details-marker { display: none; }
+
+  .review-quiz-card details summary::after {
+    content: " ›";
+  }
+
+  .review-quiz-card details[open] summary::after {
+    content: " ⌄";
+  }
+
+  .review-quiz-answer {
+    margin-top: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--cream);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============== Screen 1: file picker ============== -->
+<div id="loader-screen">
+  <h1>Swipe Deck</h1>
+  <p class="sub">Choose a level to load that level's dating profiles, then swipe through them.</p>
+
+  <div class="picker-section">
+    <p class="picker-section-label">レベルを選ぶ / Choose a level</p>
+    <div class="level-grid" id="level-grid"></div>
+  </div>
+
+  <div id="loader-status"></div>
+</div>
+
+<!-- ============== Screen 2: swipe deck ============== -->
+<div id="deck-screen">
+  <div class="deck-header">
+    <h1>💛 Swipe to practice</h1>
+    <div class="deck-counter" id="deck-counter">0 / 0</div>
+  </div>
+
+  <div class="stack" id="stack"></div>
+
+  <div class="action-row">
+    <button class="action-btn pass" id="btn-pass" title="Pass">
+      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button class="action-btn like" id="btn-like" title="Like">
+      <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.1 2 4.5 5.6 4 8 3.7 10 5 12 7.3 14 5 16 3.7 18.4 4 22 4.5 23.6 8.1 22 11.7 19.5 16.4 12 21 12 21z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ============== Screen 3: summary ============== -->
+<div id="summary-screen">
+  <h1>That's everyone!</h1>
+  <p class="sub">Here's how it went.</p>
+
+  <div class="summary-stats">
+    <div class="summary-stat">
+      <div class="num" id="stat-liked">0</div>
+      <div class="label">Liked</div>
+    </div>
+    <div class="summary-stat">
+      <div class="num" id="stat-passed">0</div>
+      <div class="label">Passed</div>
+    </div>
+  </div>
+
+  <div class="review-section">
+    <div class="review-heading">💛 Liked</div>
+    <div class="mini-card-list" id="liked-list"></div>
+  </div>
+
+  <div class="review-section">
+    <div class="review-heading">✕ Passed</div>
+    <div class="mini-card-list" id="passed-list"></div>
+  </div>
+
+  <button class="restart-btn" id="btn-restart">Load another deck</button>
+</div>
+
+<!-- ============== Review modal (full card, opened from a mini-card) ============== -->
+<div id="review-modal-backdrop">
+  <div id="review-modal" role="dialog" aria-modal="true">
+    <button id="review-modal-close" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div id="review-modal-content"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------------------------------------------------------------
+  // State
+  // ---------------------------------------------------------------
+  let profiles = [];     // parsed profile objects, in deck order
+  let currentIndex = 0;
+  let liked = [];         // full profile objects, in the order they were liked
+  let passed = [];        // full profile objects, in the order they were passed
+  let swipeInProgress = false; // guards against double-commits from rapid clicks/drags
+
+  const loaderScreen = document.getElementById("loader-screen");
+  const deckScreen = document.getElementById("deck-screen");
+  const summaryScreen = document.getElementById("summary-screen");
+  const loaderStatus = document.getElementById("loader-status");
+  const levelGrid = document.getElementById("level-grid");
+  const stack = document.getElementById("stack");
+  const deckCounter = document.getElementById("deck-counter");
+
+  // ---------------------------------------------------------------
+  // Step 1: level picking + manifest-based loading
+  // ---------------------------------------------------------------
+
+  // Level keys must exactly match the folder names under dating-profiles/
+  const LEVELS = [
+    { key: "Starter", label: "Starter" },
+    { key: "Elementary_1", label: "Elementary 1" },
+    { key: "Elementary_2", label: "Elementary 2" },
+    { key: "Pre-intermediate", label: "Pre-intermediate" },
+    { key: "Intermediate_1", label: "Intermediate 1" },
+  ];
+
+  const BASE_FOLDER = "dating-profiles";
+
+  levelGrid.innerHTML = LEVELS.map((lvl) =>
+    `<button class="level-btn" data-level="${escapeAttr(lvl.key)}">${escapeHtml(lvl.label)}</button>`
+  ).join("");
+
+  Array.from(levelGrid.querySelectorAll(".level-btn")).forEach((btn) => {
+    btn.addEventListener("click", () => selectLevel(btn.dataset.level, btn));
+  });
+
+  function selectLevel(levelKey, clickedBtn) {
+    Array.from(levelGrid.querySelectorAll(".level-btn")).forEach((b) =>
+      b.classList.toggle("active", b === clickedBtn)
+    );
+
+    loaderStatus.textContent = "Loading...";
+
+    const manifestUrl = `${BASE_FOLDER}/${levelKey}/manifest.json`;
+
+    fetch(manifestUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((entries) => {
+        if (!Array.isArray(entries) || entries.length === 0) {
+          loaderStatus.textContent = "No profiles yet for this level.";
+          return;
+        }
+
+        loaderStatus.textContent = `Loading ${entries.length} profile${entries.length > 1 ? "s" : ""}...`;
+
+        const fetches = entries.map((entry) =>
+          fetch(`${BASE_FOLDER}/${levelKey}/${encodeURIComponent(entry.file)}`).then((r) => {
+            if (!r.ok) throw new Error(`HTTP ${r.status} for ${entry.file}`);
+            return r.text();
+          })
+        );
+
+        return Promise.all(fetches).then((contents) => {
+          const parsed = [];
+          const failed = [];
+
+          contents.forEach((html, i) => {
+            const profile = parseProfileHtml(html, entries[i].file);
+            if (profile) {
+              parsed.push(profile);
+            } else {
+              failed.push(entries[i].file);
+            }
+          });
+
+          if (parsed.length === 0) {
+            loaderStatus.textContent =
+              "Couldn't read any profiles from this level's pages. Make sure manifest.json points at files generated by render_profile_html().";
+            return;
+          }
+
+          if (failed.length > 0) {
+            loaderStatus.textContent = `Loaded ${parsed.length}, skipped ${failed.length} that didn't look like a profile card.`;
+          }
+
+          profiles = parsed;
+          startDeck();
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        loaderStatus.textContent = "Couldn't load this level (missing manifest.json or a listed file).";
+      });
+  }
+
+  /**
+   * Parse a render_profile_html() output file into a plain profile object.
+   * Uses DOMParser against the real markup/class names rather than regex,
+   * so it stays robust to minor formatting differences between files.
+   */
+  function parseProfileHtml(htmlText, fileName) {
+    try {
+      const doc = new DOMParser().parseFromString(htmlText, "text/html");
+
+      const nameEl = doc.querySelector(".display-name");
+      if (!nameEl) return null; // doesn't look like a profile card at all
+
+      // .display-name contains "Name <span class='age'>NN</span>" —
+      // strip the age span out to get just the name text.
+      const ageEl = nameEl.querySelector(".age");
+      const age = ageEl ? ageEl.textContent.trim() : "";
+      const nameClone = nameEl.cloneNode(true);
+      const ageSpanInClone = nameClone.querySelector(".age");
+      if (ageSpanInClone) ageSpanInClone.remove();
+      const name = nameClone.textContent.trim() || "Unknown";
+
+      const levelEl = doc.querySelector(".level-badge");
+      const level = levelEl ? levelEl.textContent.trim() : "";
+
+      const chipEls = Array.from(doc.querySelectorAll(".chip"));
+      const chips = chipEls.map((c) => c.textContent.trim()).filter(Boolean);
+
+      const photo1 = doc.querySelector(".photo-1");
+      const photo2 = doc.querySelector(".photo-2");
+      const photoSrc = photo1 ? photo1.getAttribute("src") : "";
+      const photo2Src = photo2 ? photo2.getAttribute("src") : "";
+
+      const jpPanel = doc.querySelector(".bio-panel.jp");
+      const jpSubjectEl = jpPanel ? jpPanel.querySelector(".bio-subject") : null;
+      const jpBodyEl = jpPanel ? jpPanel.querySelector(".bio-body") : null;
+
+      const enPanel = doc.querySelector(".bio-panel.en");
+      const enSubjectEl = enPanel ? enPanel.querySelector(".bio-subject") : null;
+      const enBodyEl = enPanel ? enPanel.querySelector(".bio-body") : null;
+
+      // Each .quiz-card holds a .quiz-q (question text) and a native
+      // <details><summary>...</summary>answer</details> block. We pull
+      // out just the question and answer text — the review modal
+      // supplies its own consistent "Reveal answer" label rather than
+      // reusing whatever summary text happened to be in the source file.
+      const quizCardEls = Array.from(doc.querySelectorAll(".quiz-card"));
+      const quizItems = quizCardEls.map((cardEl) => {
+        const qEl = cardEl.querySelector(".quiz-q");
+        const detailsEl = cardEl.querySelector("details");
+        let answer = "";
+        if (detailsEl) {
+          // Clone so we can remove the <summary> without mutating the
+          // original parsed document, then take the remaining text.
+          const detailsClone = detailsEl.cloneNode(true);
+          const summaryInClone = detailsClone.querySelector("summary");
+          if (summaryInClone) summaryInClone.remove();
+          answer = detailsClone.textContent.trim();
+        }
+        return {
+          question: qEl ? qEl.textContent.trim() : "",
+          answer: answer,
+        };
+      }).filter((item) => item.question); // drop any card with no question text
+
+      return {
+        sourceFile: fileName,
+        name: name,
+        age: age,
+        level: level,
+        chips: chips,
+        photoSrc: photoSrc || "",
+        photo2Src: photo2Src || "",
+        jpSubject: jpSubjectEl ? jpSubjectEl.textContent.trim() : "",
+        jpBody: jpBodyEl ? jpBodyEl.textContent.trim() : "",
+        enSubject: enSubjectEl ? enSubjectEl.textContent.trim() : "",
+        enBody: enBodyEl ? enBodyEl.textContent.trim() : "",
+        quizItems: quizItems,
+      };
+    } catch (err) {
+      console.error("Failed to parse", fileName, err);
+      return null;
+    }
+  }
+
+  // ---------------------------------------------------------------
+  // Step 2: deck screen
+  // ---------------------------------------------------------------
+
+  function startDeck() {
+    currentIndex = 0;
+    liked = [];
+    passed = [];
+
+    loaderScreen.style.display = "none";
+    summaryScreen.style.display = "none";
+    deckScreen.style.display = "flex";
+
+    renderStack();
+  }
+
+  // Render the current and next card into the stack. Only two DOM cards
+  // exist at a time (current + peek behind it) — simpler and faster than
+  // keeping every remaining card mounted.
+  function renderStack() {
+    stack.innerHTML = "";
+    updateCounter();
+
+    if (currentIndex >= profiles.length) {
+      showSummary();
+      return;
+    }
+
+    // Peek card (next up), rendered first so it sits behind the top card
+    if (currentIndex + 1 < profiles.length) {
+      const peekCard = buildCardElement(profiles[currentIndex + 1], false);
+      peekCard.style.transform = "scale(0.96) translateY(10px)";
+      peekCard.style.opacity = "0.85";
+      stack.appendChild(peekCard);
+    }
+
+    const topCard = buildCardElement(profiles[currentIndex], true);
+    stack.appendChild(topCard);
+    attachDrag(topCard);
+  }
+
+  function updateCounter() {
+    const shown = Math.min(currentIndex + 1, profiles.length);
+    deckCounter.textContent = `${shown} / ${profiles.length}`;
+  }
+
+  function buildCardElement(profile, interactive) {
+    const card = document.createElement("div");
+    card.className = "swipe-card";
+
+    const chipsHtml = profile.chips
+      .map((c) => `<span class="card-chip">${escapeHtml(c)}</span>`)
+      .join("");
+
+    card.innerHTML = `
+      <div class="card-photo">
+        <img src="${escapeAttr(profile.photoSrc)}" alt="${escapeAttr(profile.name)}'s photo"
+             onerror="this.src='https://placehold.co/600x600/FFC629/2D2A26?text=No+Photo'">
+        <div class="photo-gradient"></div>
+        ${profile.level ? `<div class="card-level">${escapeHtml(profile.level)}</div>` : ""}
+        <div class="card-name">${escapeHtml(profile.name)} ${profile.age ? `<span class="age">${escapeHtml(profile.age)}</span>` : ""}</div>
+        <div class="stamp like">Like</div>
+        <div class="stamp pass">Pass</div>
+        <div class="heart-burst">
+          <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.1 2 4.5 5.6 4 8 3.7 10 5 12 7.3 14 5 16 3.7 18.4 4 22 4.5 23.6 8.1 22 11.7 19.5 16.4 12 21 12 21z"/></svg>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-chips">${chipsHtml}</div>
+        ${profile.jpSubject ? `<p class="card-bio-subject">${escapeHtml(profile.jpSubject)}</p>` : ""}
+        <p class="card-bio-body">${escapeHtml(profile.jpBody)}</p>
+      </div>
+    `;
+
+    return card;
+  }
+
+  // ---------------------------------------------------------------
+  // Step 3: swipe gesture physics
+  // ---------------------------------------------------------------
+
+  const SWIPE_THRESHOLD = 110; // px of horizontal drag to commit a swipe
+  const MAX_ROTATION = 14;     // degrees, at full drag
+
+  function attachDrag(card) {
+    let startX = 0, startY = 0, dx = 0, dy = 0;
+    let dragging = false;
+    let pointerId = null;
+
+    const likeStamp = card.querySelector(".stamp.like");
+    const passStamp = card.querySelector(".stamp.pass");
+
+    card.addEventListener("pointerdown", onPointerDown);
+
+    function onPointerDown(e) {
+      dragging = true;
+      pointerId = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+      card.setPointerCapture(pointerId);
+      card.style.transition = "none";
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+    }
+
+    function onPointerMove(e) {
+      if (!dragging) return;
+      dx = e.clientX - startX;
+      dy = e.clientY - startY;
+
+      const rotation = Math.max(-MAX_ROTATION, Math.min(MAX_ROTATION, dx / 12));
+      card.style.transform = `translate(${dx}px, ${dy}px) rotate(${rotation}deg)`;
+
+      const progress = Math.min(Math.abs(dx) / SWIPE_THRESHOLD, 1);
+      if (dx > 0) {
+        likeStamp.style.opacity = progress;
+        passStamp.style.opacity = 0;
+      } else {
+        passStamp.style.opacity = progress;
+        likeStamp.style.opacity = 0;
+      }
+    }
+
+    function onPointerUp() {
+      if (!dragging) return;
+      dragging = false;
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+
+      card.style.transition = "transform 0.35s cubic-bezier(.2,.8,.2,1)";
+
+      if (Math.abs(dx) >= SWIPE_THRESHOLD && !swipeInProgress) {
+        commitSwipe(card, dx > 0 ? "like" : "pass");
+      } else {
+        // Below threshold, or a swipe is already committing elsewhere
+        // (e.g. a near-simultaneous button click) — snap back rather
+        // than leaving the card frozen mid-drag with no resolution.
+        card.style.transform = "translate(0,0) rotate(0deg)";
+        likeStamp.style.opacity = 0;
+        passStamp.style.opacity = 0;
+      }
+
+      dx = 0;
+      dy = 0;
+    }
+  }
+
+  // Programmatic swipe, used by the heart/X buttons below the deck.
+  function triggerButtonSwipe(direction) {
+    if (currentIndex >= profiles.length || swipeInProgress) return;
+    const card = stack.querySelector(".swipe-card:last-child");
+    if (!card) return;
+    card.style.transition = "transform 0.35s cubic-bezier(.2,.8,.2,1)";
+    commitSwipe(card, direction);
+  }
+
+  function commitSwipe(card, direction) {
+    swipeInProgress = true;
+    const flyX = direction === "like" ? 700 : -700;
+    const rotation = direction === "like" ? 22 : -22;
+    card.style.transform = `translate(${flyX}px, -40px) rotate(${rotation}deg)`;
+
+    if (direction === "like") {
+      const profile = profiles[currentIndex];
+      liked.push(profile);
+      const burst = card.querySelector(".heart-burst");
+      if (burst) burst.classList.add("show");
+    } else {
+      passed.push(profiles[currentIndex]);
+    }
+
+    card.addEventListener("transitionend", () => {
+      currentIndex += 1;
+      swipeInProgress = false;
+      renderStack();
+    }, { once: true });
+  }
+
+  document.getElementById("btn-like").addEventListener("click", () => triggerButtonSwipe("like"));
+  document.getElementById("btn-pass").addEventListener("click", () => triggerButtonSwipe("pass"));
+
+  // ---------------------------------------------------------------
+  // Step 4: summary screen
+  // ---------------------------------------------------------------
+
+  function showSummary() {
+    deckScreen.style.display = "none";
+    summaryScreen.style.display = "block";
+
+    document.getElementById("stat-liked").textContent = liked.length;
+    document.getElementById("stat-passed").textContent = passed.length;
+
+    renderReviewSection("liked-list", liked, "No likes this round — there's always next time!");
+    renderReviewSection("passed-list", passed, "Nothing passed on — a clean sweep!");
+  }
+
+  function renderReviewSection(containerId, list, emptyMessage) {
+    const container = document.getElementById(containerId);
+    if (list.length === 0) {
+      container.innerHTML = `<div class="empty">${escapeHtml(emptyMessage)}</div>`;
+      return;
+    }
+    container.innerHTML = list.map((profile, i) => buildMiniCardHtml(profile, i)).join("");
+
+    // Event delegation: one listener per list, rather than one per
+    // mini-card, so re-rendering the list (e.g. after a restart) never
+    // leaves stale listeners behind. Each mini-card carries the index
+    // into THIS list via data-review-index, looked up again here.
+    container.onclick = (e) => {
+      const cardEl = e.target.closest(".mini-card");
+      if (!cardEl) return;
+      const index = Number(cardEl.dataset.reviewIndex);
+      if (Number.isNaN(index) || !list[index]) return;
+      openReviewModal(list[index]);
+    };
+
+    container.onkeydown = (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const cardEl = e.target.closest(".mini-card");
+      if (!cardEl) return;
+      e.preventDefault();
+      const index = Number(cardEl.dataset.reviewIndex);
+      if (Number.isNaN(index) || !list[index]) return;
+      openReviewModal(list[index]);
+    };
+  }
+
+  function buildMiniCardHtml(profile, index) {
+    return `
+      <div class="mini-card" data-review-index="${index}" role="button" tabindex="0">
+        <img class="mini-card-photo" src="${escapeAttr(profile.photoSrc)}" alt="${escapeAttr(profile.name)}'s photo"
+             onerror="this.src='https://placehold.co/600x600/FFC629/2D2A26?text=No+Photo'">
+        <div class="mini-card-name">${escapeHtml(profile.name)}${profile.age ? ` <span class="mini-card-age">${escapeHtml(profile.age)}</span>` : ""}</div>
+      </div>
+    `;
+  }
+
+  // ---------------------------------------------------------------
+  // Step 5: review modal — reopen a full card from a mini-card click
+  // ---------------------------------------------------------------
+
+  let reviewModalSeq = 0; // ensures unique toggle IDs each time the modal opens
+
+  const reviewModalBackdrop = document.getElementById("review-modal-backdrop");
+  const reviewModalContent = document.getElementById("review-modal-content");
+
+  function openReviewModal(profile) {
+    reviewModalSeq += 1;
+    const jpId = `review-lang-${reviewModalSeq}-jp`;
+    const enId = `review-lang-${reviewModalSeq}-en`;
+    const heartId = `review-heart-${reviewModalSeq}`;
+    const hasSecondPhoto = Boolean(profile.photo2Src);
+
+    const chipsHtml = profile.chips
+      .map((c) => `<span class="review-card-chip">${escapeHtml(c)}</span>`)
+      .join("");
+
+    const photoBlock = hasSecondPhoto
+      ? `<div class="review-photo-controller">
+          <input type="checkbox" id="${heartId}">
+          <div class="review-card-photo">
+            <img class="review-photo-1" src="${escapeAttr(profile.photoSrc)}" alt="${escapeAttr(profile.name)}'s first photo"
+                 onerror="this.src='https://placehold.co/600x600/FFC629/2D2A26?text=No+Photo'">
+            <img class="review-photo-2" src="${escapeAttr(profile.photo2Src)}" alt="${escapeAttr(profile.name)}'s second photo"
+                 onerror="this.src='https://placehold.co/600x600/FFC629/2D2A26?text=No+Photo'">
+            <div class="photo-gradient"></div>
+            ${profile.level ? `<div class="card-level">${escapeHtml(profile.level)}</div>` : ""}
+            <div class="card-name">${escapeHtml(profile.name)} ${profile.age ? `<span class="age">${escapeHtml(profile.age)}</span>` : ""}</div>
+          </div>
+          <label for="${heartId}" class="review-heart-toggle" title="See another photo">
+            <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.1 2 4.5 5.6 4 8 3.7 10 5 12 7.3 14 5 16 3.7 18.4 4 22 4.5 23.6 8.1 22 11.7 19.5 16.4 12 21 12 21z"/></svg>
+          </label>
+        </div>`
+      : `<div class="review-card-photo">
+          <img src="${escapeAttr(profile.photoSrc)}" alt="${escapeAttr(profile.name)}'s photo"
+               onerror="this.src='https://placehold.co/600x600/FFC629/2D2A26?text=No+Photo'">
+          <div class="photo-gradient"></div>
+          ${profile.level ? `<div class="card-level">${escapeHtml(profile.level)}</div>` : ""}
+          <div class="card-name">${escapeHtml(profile.name)} ${profile.age ? `<span class="age">${escapeHtml(profile.age)}</span>` : ""}</div>
+        </div>`;
+
+    reviewModalContent.innerHTML = `
+      ${photoBlock}
+      <div class="review-card-body">
+        <div class="review-card-chips">${chipsHtml}</div>
+
+        <input type="radio" name="review-lang-${reviewModalSeq}" id="${jpId}" checked>
+        <input type="radio" name="review-lang-${reviewModalSeq}" id="${enId}">
+        <div class="review-lang-toggle">
+          <label for="${jpId}">日本語</label>
+          <label for="${enId}">English</label>
+          <div class="review-toggle-pill"></div>
+        </div>
+
+        <div class="review-bio-panels">
+          <div class="review-bio-panel jp">
+            ${profile.jpSubject ? `<p class="review-bio-subject">${escapeHtml(profile.jpSubject)}</p>` : ""}
+            <p class="review-bio-body">${escapeHtml(profile.jpBody)}</p>
+          </div>
+          <div class="review-bio-panel en">
+            ${profile.enSubject ? `<p class="review-bio-subject">${escapeHtml(profile.enSubject)}</p>` : ""}
+            <p class="review-bio-body">${escapeHtml(profile.enBody)}</p>
+          </div>
+        </div>
+
+        ${buildQuizSectionHtml(profile.quizItems)}
+      </div>
+    `;
+
+    reviewModalBackdrop.classList.add("open");
+  }
+
+  function buildQuizSectionHtml(quizItems) {
+    if (!quizItems || quizItems.length === 0) return "";
+
+    const cardsHtml = quizItems.map((item) => `
+      <div class="review-quiz-card">
+        <p class="review-quiz-q">${escapeHtml(item.question)}</p>
+        <details>
+          <summary>Reveal answer</summary>
+          <div class="review-quiz-answer">${escapeHtml(item.answer)}</div>
+        </details>
+      </div>
+    `).join("");
+
+    return `
+      <div class="review-quiz-section">
+        <div class="review-quiz-heading">Comprehension check</div>
+        <div class="review-quiz-list">${cardsHtml}</div>
+      </div>
+    `;
+  }
+
+  function closeReviewModal() {
+    reviewModalBackdrop.classList.remove("open");
+  }
+
+  document.getElementById("review-modal-close").addEventListener("click", closeReviewModal);
+
+  // Close on backdrop click, but not when the click originates inside
+  // the modal card itself (e.g. clicking the JA/EN toggle shouldn't close it).
+  reviewModalBackdrop.addEventListener("click", (e) => {
+    if (e.target === reviewModalBackdrop) {
+      closeReviewModal();
+    }
+  });
+
+  // Close on Escape key, only while the modal is actually open.
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && reviewModalBackdrop.classList.contains("open")) {
+      closeReviewModal();
+    }
+  });
+
+  document.getElementById("btn-restart").addEventListener("click", () => {
+    profiles = [];
+    currentIndex = 0;
+    liked = [];
+    passed = [];
+    swipeInProgress = false;
+    Array.from(levelGrid.querySelectorAll(".level-btn")).forEach((b) => b.classList.remove("active"));
+    loaderStatus.textContent = "";
+    summaryScreen.style.display = "none";
+    loaderScreen.style.display = "block";
+  });
+
+  // ---------------------------------------------------------------
+  // Small helpers
+  // ---------------------------------------------------------------
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
+  }
+
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/"/g, "&quot;");
+  }
+})();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch((err) => {
+      console.warn("Service worker registration failed:", err);
+    });
+  });
+}
+</script>
+
+</body>
+</html>

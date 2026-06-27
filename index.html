@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Japanese Reading Practice</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2D2A26">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --honey: #FFC629;
+    --ink: #2D2A26;
+    --cream: #FFF8E7;
+    --coral: #FF6B5C;
+    --muted: #8A8175;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(160deg, #FFC629 0%, #FFE08A 38%, #FFF8E7 100%);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 440px;
+  }
+  h1 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 26px;
+    color: var(--ink);
+    margin: 0 0 4px;
+    text-align: center;
+  }
+  p.sub {
+    text-align: center;
+    font-size: 14px;
+    color: var(--ink);
+    opacity: 0.75;
+    margin: 0 0 28px;
+  }
+  .activity-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .activity-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--cream);
+    border-radius: 18px;
+    padding: 16px 18px;
+    text-decoration: none;
+    box-shadow: 0 10px 24px -10px rgba(45,42,38,0.25);
+    transition: transform 0.15s ease;
+  }
+  .activity-card:hover {
+    transform: translateY(-2px);
+  }
+  .activity-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(45,42,38,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .activity-text {
+    flex: 1;
+  }
+  .activity-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    margin: 0 0 2px;
+  }
+  .activity-desc {
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .activity-arrow {
+    color: var(--coral);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .install-hint {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink);
+    opacity: 0.6;
+    margin-top: 26px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>日本語 Reading Practice</h1>
+  <p class="sub">Choose an activity to get started.</p>
+
+  <div class="activity-grid">
+    <a class="activity-card" href="restaurant_browse.html">
+      <span class="activity-icon">🍜</span>
+      <span class="activity-text">
+        <p class="activity-title">Restaurant Reviews</p>
+        <p class="activity-desc">Read Tabelog-style restaurant review pages</p>
+      </span>
+      <span class="activity-arrow">→</span>
+    </a>
+
+    <a class="activity-card" href="amazon_browse.html">
+      <span class="activity-icon">🛒</span>
+      <span class="activity-text">
+        <p class="activity-title">Amazon Reviews</p>
+        <p class="activity-desc">Read Amazon-style product review pages</p>
+      </span>
+      <span class="activity-arrow">→</span>
+    </a>
+
+    <a class="activity-card" href="deck.html">
+      <span class="activity-icon">💛</span>
+      <span class="activity-text">
+        <p class="activity-title">Swipe Deck</p>
+        <p class="activity-desc">Swipe through dating profiles</p>
+      </span>
+      <span class="activity-arrow">→</span>
+    </a>
+
+    <a class="activity-card" href="match_game.html">
+      <span class="activity-icon">🧩</span>
+      <span class="activity-text">
+        <p class="activity-title">Match the Review</p>
+        <p class="activity-desc">Drag reviews onto the photo they describe</p>
+      </span>
+      <span class="activity-arrow">→</span>
+    </a>
+  </div>
+
+  <p class="install-hint">📲 Add this page to your home screen to install it as an app.</p>
+</div>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch((err) => {
+        console.warn("Service worker registration failed:", err);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>

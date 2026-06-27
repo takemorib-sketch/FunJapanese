@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cordless Vacuum Cleaner — Reviews</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Arial:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --amazon-navy: #131921;
+    --amazon-navy-light: #232F3E;
+    --amazon-orange: #FF9900;
+    --amazon-gold: #FFA41C;
+    --amazon-link: #007185;
+    --bg: #FFFFFF;
+    --bg-muted: #F7F8F8;
+    --border: #D5D9D9;
+    --text: #0F1111;
+    --text-muted: #565959;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg-muted);
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+  }
+
+  .top-bar {
+    background: var(--amazon-navy);
+    color: white;
+    padding: 14px 20px;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+  }
+
+  .top-bar .orange { color: var(--amazon-orange); }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  .product-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+
+  .product-image {
+    width: 180px;
+    height: 180px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg-muted);
+    border: 1px solid var(--border);
+  }
+
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .product-info {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .product-title {
+    font-size: 21px;
+    font-weight: 400;
+    color: var(--text);
+    margin: 0 0 8px;
+    line-height: 1.3;
+  }
+
+  .product-summary-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .average-rating-num {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .stars {
+    color: var(--amazon-gold);
+    font-size: 18px;
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+
+  .review-count {
+    color: var(--amazon-link);
+    font-size: 13.5px;
+  }
+
+  .product-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .product-chip {
+    background: var(--bg-muted);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  .section-heading {
+    font-size: 19px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin: 0 0 16px;
+  }
+
+  .reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 30px;
+  }
+
+  .review-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+
+  .review-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .reviewer-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--amazon-navy-light);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .reviewer-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .review-stars-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .review-stars-row .stars {
+    font-size: 14px;
+  }
+
+  .verified-badge {
+    color: var(--text-muted);
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+
+  /* Language toggle — same hidden-checkbox + sibling-selector technique
+     proven in the dating-card template, adapted to this card's layout. */
+  .review-card input { display: none; }
+
+  .lang-toggle {
+    position: relative;
+    display: flex;
+    width: 180px;
+    background: var(--bg-muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+    margin-bottom: 12px;
+  }
+
+  .lang-toggle label {
+    flex: 1;
+    text-align: center;
+    padding: 6px 0;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 999px;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    color: var(--text-muted);
+    transition: color 0.25s ease;
+    user-select: none;
+  }
+
+  .toggle-pill {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    background: var(--amazon-navy-light);
+    border-radius: 999px;
+    transition: transform 0.28s cubic-bezier(.65,0,.35,1);
+    z-index: 1;
+  }
+
+  .review-card input[id$="-en"]:checked ~ .lang-toggle .toggle-pill {
+    transform: translateX(100%);
+  }
+
+  .review-card input[id$="-jp"]:checked ~ .lang-toggle label[for$="-jp"],
+  .review-card input[id$="-en"]:checked ~ .lang-toggle label[for$="-en"] {
+    color: white;
+  }
+
+  .review-body-text { display: none; margin: 0; line-height: 1.6; font-size: 14px; }
+
+  .review-card input[id$="-jp"]:checked ~ .review-body-panels .review-body-text.jp,
+  .review-card input[id$="-en"]:checked ~ .review-body-panels .review-body-text.en {
+    display: block;
+  }
+
+  .review-body-text.jp { font-family: 'Noto Sans JP', sans-serif; }
+
+  .no-reviews {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .quiz-heading {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 12px;
+  }
+
+  .quiz-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .quiz-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .quiz-q {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    margin: 0 0 6px;
+    white-space: pre-wrap;
+  }
+
+  .quiz-card details summary {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--amazon-link);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .quiz-card details summary::-webkit-details-marker { display: none; }
+  .quiz-card details summary::after { content: " ›"; }
+  .quiz-card details[open] summary::after { content: " ⌄"; }
+
+  .quiz-card details > *:not(summary) {
+    margin-top: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--bg-muted);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
+  .quiz-empty {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">amazon<span class="orange">.co.jp</span> — practice reviews</div>
+
+<div class="page">
+
+  <div class="product-card">
+    <div class="product-image">
+      <img src="data:image/png;base64,UEhPVE8gRk9SIENvcmRsZXNzIFZhY3V1bSBDbGVhbmVy" alt="Cordless Vacuum Cleaner" onerror="this.src='https://placehold.co/600x600/EAEDED/232F3E?text=No+Image'">
+    </div>
+    <div class="product-info">
+      <p class="product-title">Cordless Vacuum Cleaner</p>
+      <div class="product-summary-row">
+        <span class="average-rating-num">3.0</span>
+        <span class="stars" aria-label="3 out of 5 stars">★★★☆☆</span>
+        <span class="review-count">4 ratings</span>
+      </div>
+      <div class="product-chips">
+        <span class="product-chip">Elementary 1</span>
+        <span class="product-chip">Topic 3: Shopping and Reviews</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="section-heading">Customer reviews</p>
+  <div class="reviews-list">
+    
+    <div class="review-card">
+      <div class="review-card-header">
+        <div class="reviewer-avatar">S</div>
+        <div class="reviewer-meta">
+          <div class="reviewer-name">Sato</div>
+          <div class="review-stars-row">
+            <span class="stars" aria-label="5 out of 5 stars">★★★★★</span>
+            <span class="verified-badge">Verified Purchase</span>
+          </div>
+        </div>
+      </div>
+
+      <input type="radio" name="review-lang-1" id="review-lang-1-jp" checked>
+      <input type="radio" name="review-lang-1" id="review-lang-1-en">
+      <div class="lang-toggle">
+        <label for="review-lang-1-jp">日本語</label>
+        <label for="review-lang-1-en">English</label>
+        <div class="toggle-pill"></div>
+      </div>
+
+      <div class="review-body-panels">
+        <p class="review-body-text jp">かるいです。</p>
+        <p class="review-body-text en">It&#x27;s light.</p>
+      </div>
+    </div>
+    
+
+    <div class="review-card">
+      <div class="review-card-header">
+        <div class="reviewer-avatar">I</div>
+        <div class="reviewer-meta">
+          <div class="reviewer-name">Ito</div>
+          <div class="review-stars-row">
+            <span class="stars" aria-label="4 out of 5 stars">★★★★☆</span>
+            <span class="verified-badge">Verified Purchase</span>
+          </div>
+        </div>
+      </div>
+
+      <input type="radio" name="review-lang-2" id="review-lang-2-jp" checked>
+      <input type="radio" name="review-lang-2" id="review-lang-2-en">
+      <div class="lang-toggle">
+        <label for="review-lang-2-jp">日本語</label>
+        <label for="review-lang-2-en">English</label>
+        <div class="toggle-pill"></div>
+      </div>
+
+      <div class="review-body-panels">
+        <p class="review-body-text jp">おとがすこしうるさいです。</p>
+        <p class="review-body-text en">A bit noisy.</p>
+      </div>
+    </div>
+    
+
+    <div class="review-card">
+      <div class="review-card-header">
+        <div class="reviewer-avatar">K</div>
+        <div class="reviewer-meta">
+          <div class="reviewer-name">Kobayashi</div>
+          <div class="review-stars-row">
+            <span class="stars" aria-label="1 out of 5 stars">★☆☆☆☆</span>
+            <span class="verified-badge">Verified Purchase</span>
+          </div>
+        </div>
+      </div>
+
+      <input type="radio" name="review-lang-3" id="review-lang-3-jp" checked>
+      <input type="radio" name="review-lang-3" id="review-lang-3-en">
+      <div class="lang-toggle">
+        <label for="review-lang-3-jp">日本語</label>
+        <label for="review-lang-3-en">English</label>
+        <div class="toggle-pill"></div>
+      </div>
+
+      <div class="review-body-panels">
+        <p class="review-body-text jp">バッテリーがすぐなくなります。じゅうでんしてもいちじかんしかつかえません。とてもがっかりしました。</p>
+        <p class="review-body-text en">The battery runs out fast. After charging it only lasts an hour. Very disappointed.</p>
+      </div>
+    </div>
+    
+
+    <div class="review-card">
+      <div class="review-card-header">
+        <div class="reviewer-avatar">Y</div>
+        <div class="reviewer-meta">
+          <div class="reviewer-name">Yamamoto</div>
+          <div class="review-stars-row">
+            <span class="stars" aria-label="2 out of 5 stars">★★☆☆☆</span>
+            <span class="verified-badge">Verified Purchase</span>
+          </div>
+        </div>
+      </div>
+
+      <input type="radio" name="review-lang-4" id="review-lang-4-jp" checked>
+      <input type="radio" name="review-lang-4" id="review-lang-4-en">
+      <div class="lang-toggle">
+        <label for="review-lang-4-jp">日本語</label>
+        <label for="review-lang-4-en">English</label>
+        <div class="toggle-pill"></div>
+      </div>
+
+      <div class="review-body-panels">
+        <p class="review-body-text jp">おもいです。</p>
+        <p class="review-body-text en">It&#x27;s heavy.</p>
+      </div>
+    </div>
+    
+  </div>
+
+  <p class="section-heading">Comprehension check</p>
+  <div class="quiz-list">
+    <p class="quiz-empty">No questions generated.</p>
+  </div>
+
+</div>
+
+</body>
+</html>
